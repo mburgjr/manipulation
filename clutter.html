@@ -197,24 +197,24 @@ href="https://www.youtube.com/channel/UChfUOAhz7ynELF-s_1LPpWg">Lecture  videos 
       href="http://underactuated.mit.edu/multibody.html">available here</a>.
       What is important to understand here is that the equations of motion of
       our multibody system are described by differential equations of the form:
-      $$M(q)\dot{v} + C(q,v)v = \tau_g(q) + \sum_i J^T_i(q)f^{c_i}.$$  We
+      $$M(q)\dot{v} + C(q,v)v = \tau_g(q) + \sum_i J^T_i(q)F^{B_i/c_i}.$$  We
       already understand the generalized positions, $q$, and velocities, $v$.
       The left side of the equation is just a generalization of "mass times
       acceleration", with the mass matrix, $M$, and the Coriolis terms $C$. The
       right hand side is the sum of the (generalized) forces, with $\tau_g(q)$
-      capturing the terms due to gravity, and $f^{c_i}$ is the <a
-      href="https://drake.mit.edu/doxygen_cxx/group__multibody__spatial__vectors.html">spatial
-      force</a> due to the $i$th contact.  $J_i(q)$ is the $i$th "contact
-      Jacobian" -- it is the Jacobian that maps from the generalized velocities
-      to the spatial velocity of the $i$th contact frame.</p>
+      capturing the terms due to gravity, and $F^{B_i/c_i}$ is the <a
+      href="#spatial_force">spatial force</a> on body $B_i$ applied at contact
+      location $c_i$. $J_i(q)$ is the $i$th "contact Jacobian" -- it is the
+      Jacobian that maps from the generalized velocities to the spatial
+      velocity of the $i$th contact frame.</p>
 
-      <p>Our interest here is in finding (stable) steady-state solutions to
-      these differential equations that can serve as good initial conditions
-      for our simulation.  At steady-state we have $v=\dot{v}=0$, and
-      conveniently all of the terms on the left-hand side of the equations are
-      zero.  This leaves us with just the force-balance equations $$\tau_g(q) =
-      - \sum_i J^T_i(q) f^{c_i}.$$  But we still need to understand where the
-      contact forces come from.</p>
+      <p>Our initial interest here is in finding (stable) steady-state
+      solutions to these differential equations that can serve as good initial
+      conditions for our simulation.  At steady-state we have $v=\dot{v}=0$,
+      and conveniently all of the terms on the left-hand side of the equations
+      are zero.  This leaves us with just the force-balance equations
+      $$\tau_g(q) = - \sum_i J^T_i(q) F^{B_i/c_i}.$$  But we still need to
+      understand where the contact forces come from.</p>
 
       <subsubsection><h1>Collision geometry</h1>
 
@@ -283,7 +283,7 @@ href="https://www.youtube.com/channel/UChfUOAhz7ynELF-s_1LPpWg">Lecture  videos 
       default collision filter settings should work fine for most applications,
       but you can tweak them if you like.</p>
 
-      <p>So where do the contact forces, $f^{c_i}$, come from?  There is
+      <p>So where do the contact forces, $F^{B_i/c_i}$, come from?  There is
       potentially an equal and opposite contact force for every <i>pair</i> of
       collision geometries that are not filtered out by the collision filter.
       In <code>SceneGraph</code>, the <a
@@ -533,18 +533,19 @@ href="https://www.youtube.com/channel/UChfUOAhz7ynELF-s_1LPpWg">Lecture  videos 
       applied to a rigid body at some point.  More generally, we will define a
       six-component vector for <a
       href="https://drake.mit.edu/doxygen_cxx/group__multibody__spatial__vectors.html"><i>spatial
-      force</i></a>: \begin{equation}F^{B/p}_{{\text{name}},C} =
-      \begin{bmatrix} \tau^{B/p}_{\text{name},C} \\ f^{B/p}_{\text{name},C}
-      \end{bmatrix}.\end{equation} $F^{B/p}_{\text{name},C}$ is the named
+      force</i></a>: \begin{equation}{}^pF^B_{{\text{name}},C} =
+      \begin{bmatrix} {}^p\tau^B_{\text{name},C} \\ {}^pf^B_{\text{name},C}
+      \end{bmatrix}.\end{equation} ${}^pF^B_{\text{name},C}$ is the named
       spatial force applied to a body $B$ at the point (or frame) $p$,
-      expressed in frame $C$. The name is optional, and the expressed in frame,
-      if unspecified, is the world frame. In code, we write
-      <code>Fname_Bq_C</code>. Like spatial velocity, it has a rotational
-      component and a translational component; $\tau^{B/p}_C \in \Re^3$ is the
+      expressed in frame $C$. The name is optional; if unspecified then the
+      reference frame is taken to be the body frame of $B$, and the expressed
+      in frame, if unspecified, is the reference frame. In code, we write
+      <code>Fname_pB_C</code>. Like spatial velocity, it has a rotational
+      component and a translational component; ${}^p\tau^B_C \in \Re^3$ is the
       <i>torque</i>
-      (on body $B$ applied at point $p$ expressed in frame $C$), and
-      $f^{B/p}_C \in \Re^3$ is the translational or Cartesian
-      force. A spatial force is also commonly referred to as a <a
+      (on body $B$ applied at point $p$ expressed in frame $C$), and ${}^pf^B_C
+      \in \Re^3$ is the translational or Cartesian force. A spatial force is
+      also commonly referred to as a <a
       href="https://en.wikipedia.org/wiki/Screw_theory#Wrench">wrench</a>.  If
       you find it strange to think of forces as having a rotational component,
       then think of it this way: the world might only impart Cartesian forces
@@ -557,17 +558,17 @@ href="https://www.youtube.com/channel/UChfUOAhz7ynELF-s_1LPpWg">Lecture  videos 
       <p>Spatial forces fit neatly into our spatial algebra:
       <ul>
         <li>Spatial forces add when they are applied to the same body in the
-        same frame, e.g.: \begin{equation}F^{B/p}_{\text{total},C}
-        = \sum_i F^{B/p}_{i,C} .\end{equation}</todo></li>
+        same frame, e.g.: \begin{equation}{}^pF^B_{\text{total},C}
+        = \sum_i {}^pF^B_{i,C} .\end{equation}</todo></li>
         <li>Shifting a spatial force from one application frame, $P$, to
         another frame, $Q$, uses the cross product: \begin{equation}
-        f^{B/Q}_C = f^{B/P}_C, \qquad
-        \tau^{B/Q}_C = \tau^{B/P}_C + {}^Qp^P_C \times
-        f^{B/P}_C.\end{equation}</li>
+        {}^Qf^B_C = {}^Pf^B_C, \qquad
+        {}^Q\tau^B_C = \tau^{B/P}_C + {}^Qp^P_C \times
+        {}^Pf^B_C.\end{equation}</li>
         <li>As with all spatial vectors, rotations can be used to change
-        between the "expressed-in" frames: \begin{equation} f^{B/p}_D = {}^DR^C
-        f^{B/p}_C, \qquad \tau^{B/p}_D = {}^DR^C
-        \tau^{B/p}_C.\end{equation}</li>
+        between the "expressed-in" frames: \begin{equation} {}^pf^B_D = {}^DR^C
+        {}^pf^B_C, \qquad {}^p\tau^B_D = {}^DR^C
+        {}^p\tau^B_C.\end{equation}</li>
       </ul>
       </p>
 
