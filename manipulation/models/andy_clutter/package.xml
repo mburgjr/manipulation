@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<package>
+  <name>andy_clutter</name>
+  <version>1.0.0</version>
+  <description>
+    Files describing Andy Lambert's clutter clearing station.
+  </description>
+  <license>BSD</license>
+</package>
